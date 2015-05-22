@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/tableLayout1"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+
+            <TableRow
+                android:id="@+id/tableRow0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dip">
+
+                <ToggleButton
+                    android:id="@+id/ledButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="false"
+                    android:text="New ToggleButton"
+                    android:textAllCaps="false"
+                    android:textOff="Led Off"
+                    android:textOn="Led On" />
+
+                <Button
+                    android:id="@+id/historyButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="false"
+                    android:text="Request history"
+                    android:textAllCaps="false" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/tableRow1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dip">
+
+                <TextView
+                    android:id="@+id/sunlightTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="Sunlight"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+                <TextView
+                    android:id="@+id/sunlightValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text=""
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+                <Button
+                    android:id="@+id/readSunlight"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/sunlightValue"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="read"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/tableRow2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dip">
+
+                <TextView
+                    android:id="@+id/soilTemperatureTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="Soil T°"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+                <TextView
+                    android:id="@+id/soilTemperatureValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/soilTemperatureTitle"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text=""
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+                <Button
+                    android:id="@+id/readSoilTemp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/soilTemperatureValue"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="read"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/tableRow3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dip">
+
+                <TextView
+                    android:id="@+id/airTemperatureTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="Air T°"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+
+                <TextView
+                    android:id="@+id/airTemperatureValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/airTemperatureTitle"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text=""
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+                <Button
+                    android:id="@+id/readAirTemp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/airTemperatureValue"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="read"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/tableRow4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dip">
+
+                <TextView
+                    android:id="@+id/soilECTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="Soil Ec"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+                <TextView
+                    android:id="@+id/soilECValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/soilECTitle"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text=""
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+                <Button
+                    android:id="@+id/readEcValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/soilECValue"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="read"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/tableRow5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dip">
+
+                <TextView
+                    android:id="@+id/soilWcTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="Soil Wc"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+                <TextView
+                    android:id="@+id/soilWcValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/soilWcTitle"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text=""
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+                <Button
+                    android:id="@+id/readWcValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/soilWcValue"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="read"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/tableRow6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dip">
+
+                <TextView
+                    android:id="@+id/batteryTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="Battery"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+                <TextView
+                    android:id="@+id/batteryValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/batteryTitle"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text=""
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+                <Button
+                    android:id="@+id/readBattery"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/batteryValue"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="read"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/tableRow7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dip">
+
+                <TextView
+                    android:id="@+id/colorTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="Color"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+                <TextView
+                    android:id="@+id/colorValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/colorTitle"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text=""
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+                <Button
+                    android:id="@+id/readColor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/colorValue"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="read"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/tableRow9"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dip">
+
+                <TextView
+                    android:id="@+id/measurementPeriod"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="Period"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+                <EditText
+                    android:id="@+id/measurementPeriodValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/measurementPeriod"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text=""
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+                <Button
+                    android:id="@+id/validatePeriodValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/measurementPeriodValue"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="OK"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/tableRow10"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="5dip">
+
+                <TextView
+                    android:id="@+id/flowerPowerDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="clock"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+
+                <TextView
+                    android:id="@+id/flowerPowerDateValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/flowerPowerDate"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text=""
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+                <Button
+                    android:id="@+id/readDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/flowerPowerDate"
+                    android:gravity="center|left"
+                    android:padding="10dp"
+                    android:text="read"
+                    android:textColor="#ff000000"
+                    android:textSize="20dp" />
+            </TableRow>
+
+        </TableLayout>
+    </ScrollView>
+</LinearLayout>
