@@ -32,7 +32,7 @@ Specifications : https://flowerpowerdev.parrot.com/attachments/download/32/Flowe
 
 ![screenshot](https://raw.github.com/akinaru/flower-power-android-gatt/master/screenshot.png)
 
-TODO : improve UI activities management
-TODO : create other activity for historic data
-TODO : monitor service discovery and connection for long waiting
-TODO : define custom layout for Android TV / custom selector
+*TODO : improve UI activities management
+*TODO : create other activity for historic data
+*TODO : monitor service discovery and connection for long waiting
+*TODO : define custom layout for Android TV / custom selector
