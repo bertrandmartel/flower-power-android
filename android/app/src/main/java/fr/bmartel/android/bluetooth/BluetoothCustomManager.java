@@ -23,6 +23,7 @@
  */
 package fr.bmartel.android.bluetooth;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
@@ -149,6 +150,7 @@ public class BluetoothCustomManager implements IBluetoothCustomManager {
     }
 
 
+    @SuppressLint("NewApi")
     public void init(final ISharedActivity sharedActivity) {
         // Initializes Bluetooth adapter.
         final BluetoothManager bluetoothManager = (BluetoothManager) sharedActivity.getContext().getSystemService(Context.BLUETOOTH_SERVICE);
@@ -214,6 +216,7 @@ public class BluetoothCustomManager implements IBluetoothCustomManager {
      *
      * @param enable true if bluetooth start scanning / stop scanning if false
      */
+    @SuppressLint("NewApi")
     public void scanLeDevice(final boolean enable) {
         if (enable) {
             //notify start of scan
@@ -248,6 +251,7 @@ public class BluetoothCustomManager implements IBluetoothCustomManager {
     /**
      * Stop Bluetooth LE scanning
      */
+    @SuppressLint("NewApi")
     public void stopScan() {
         mHandler.removeCallbacksAndMessages(null);
         scanning = false;
@@ -262,6 +266,7 @@ public class BluetoothCustomManager implements IBluetoothCustomManager {
     /**
      * Connect to device's GATT server
      */
+    @SuppressLint("NewApi")
     public boolean connect(String address, Context context) {
         if (mBluetoothAdapter == null || address == null) {
             Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
@@ -272,33 +277,25 @@ public class BluetoothCustomManager implements IBluetoothCustomManager {
 
         boolean alreadyInList = false;
 
-        Iterator it = bluetoothConnectionList.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry)it.next();
-            if (pair.getKey().equals(address))
-            {
-                alreadyInList = true;
-            }
+        if (bluetoothConnectionList.containsKey(address)){
+            alreadyInList = true;
         }
 
         if (alreadyInList) {
 
-            while (it.hasNext()) {
-                Map.Entry<String,IBluetoothDeviceConn> pair = (Map.Entry)it.next();
-                if (pair.getKey().equals(address))
-                {
-                    System.out.println("reusing same connection");
-                    pair.getValue().getBluetoothGatt().connect();
-                    break;
-                }
-            }
+            Log.i(TAG,"reusing same connection");
+
+            BluetoothDeviceConn conn = (BluetoothDeviceConn) bluetoothConnectionList.get(address);
+
+            conn.setGatt(device.connectGatt(context, false, conn.getGattCallback()));
+
         } else {
 
             BluetoothDeviceConn conn = new BluetoothDeviceConn(address, device.getName(),this);
 
             bluetoothConnectionList.put(address,conn);
 
-            System.out.println("new connection");
+            Log.i(TAG, "new connection");
             //connect to gatt server on the device
             conn.setGatt(device.connectGatt(context, false, conn.getGattCallback()));
         }
@@ -336,6 +333,7 @@ public class BluetoothCustomManager implements IBluetoothCustomManager {
         context.sendBroadcast(intent);
     }
 
+    @SuppressLint("NewApi")
     @Override
     public void writeCharacteristic(final BluetoothGattCharacteristic charac, byte[] value, final BluetoothGatt gatt) {
 
@@ -343,6 +341,7 @@ public class BluetoothCustomManager implements IBluetoothCustomManager {
 
         if (gatt!=null && charac!=null && value!=null) {
             gattThreadPool.execute(new Runnable() {
+                @SuppressLint("NewApi")
                 @Override
                 public void run() {
                     gatt.writeCharacteristic(charac);
@@ -364,6 +363,7 @@ public class BluetoothCustomManager implements IBluetoothCustomManager {
 
         if (gatt!=null && charac!=null) {
             gattThreadPool.execute(new Runnable() {
+                @SuppressLint("NewApi")
                 @Override
                 public void run() {
                     gatt.readCharacteristic(charac);
@@ -385,6 +385,7 @@ public class BluetoothCustomManager implements IBluetoothCustomManager {
 
         if (gatt!=null && descriptor!=null) {
             gattThreadPool.execute(new Runnable() {
+                @SuppressLint("NewApi")
                 @Override
                 public void run() {
                     gatt.writeDescriptor(descriptor);

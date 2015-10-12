@@ -45,7 +45,10 @@ public interface IBluetoothDeviceConn {
 
     public void enableGattNotifications(UUID service, UUID charac);
 
+
     public IBluetoothCustomManager getManager();
 
     public IDevice getDevice();
+
+    public void disconnect();
 }

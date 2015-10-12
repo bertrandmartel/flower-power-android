@@ -32,6 +32,8 @@ import android.os.IBinder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import fr.bmartel.android.bluetooth.BluetoothCustomManager;
 import fr.bmartel.android.bluetooth.IBluetoothManagerEventListener;
@@ -133,6 +135,19 @@ public class FlowerPowerBtService extends Service implements ISharedActivity {
 
     public void addEventListener(IBluetoothManagerEventListener listener) {
         btManager.addEventListener(listener);
+    }
+
+    public void disconnectall() {
+
+        Iterator it = btManager.getConnectionList().entrySet().iterator();
+        while (it.hasNext()){
+            Map.Entry<String,IBluetoothDeviceConn> pair = (Map.Entry) it.next();
+            pair.getValue().disconnect();
+        }
+    }
+
+    public void removeScanListeners(){
+        scanListListeners.clear();
     }
 
     /*

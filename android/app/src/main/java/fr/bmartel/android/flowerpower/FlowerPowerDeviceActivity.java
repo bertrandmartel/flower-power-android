@@ -30,6 +30,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -45,6 +46,7 @@ import fr.bmartel.android.bluetooth.parrot.FlowerPowerColor;
 import fr.bmartel.android.bluetooth.parrot.IFlowerPowerDevice;
 import fr.bmartel.android.bluetooth.parrot.IFlowerPowerListener;
 import fr.bmartel.android.bluetooth.parrot.history.IHistoricFrame;
+import fr.bmartel.android.utils.ByteUtils;
 
 /**
  * Flower Power device description activity
@@ -54,6 +56,8 @@ import fr.bmartel.android.bluetooth.parrot.history.IHistoricFrame;
 public class FlowerPowerDeviceActivity extends ActionBarActivity {
 
     private FlowerPowerBtService currentService = null;
+
+    private String TAG = FlowerPowerDeviceActivity.class.getName();
 
     private String address = "";
 
@@ -87,7 +91,7 @@ public class FlowerPowerDeviceActivity extends ActionBarActivity {
         @Override
         public void onServiceConnected(final ComponentName name, IBinder service) {
 
-            System.out.println("Connected to service");
+           Log.i(TAG, "Connected to service");
 
             currentService = ((FlowerPowerBtService.LocalBinder) service).getService();
 
@@ -315,7 +319,7 @@ public class FlowerPowerDeviceActivity extends ActionBarActivity {
 
                         @Override
                         public void onFullHistoryDataReceived(ArrayList<IHistoricFrame> frameList) {
-                            System.out.println("Complete history has been retrieved => " + frameList.size() + " frames");
+                            Log.i(TAG,"Complete history has been retrieved => " + frameList.size() + " frames");
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -334,7 +338,6 @@ public class FlowerPowerDeviceActivity extends ActionBarActivity {
                                 @Override
                                 public void run() {
                                     if (progress != null) {
-                                        System.out.println("set progress to " + progressChange);
 
                                         progress.setProgress(progressChange);
                                     }
@@ -401,8 +404,6 @@ public class FlowerPowerDeviceActivity extends ActionBarActivity {
 
                         }
                     });
-                    System.out.println("identified flower power continuing ....");
-
 
                     if (ledButton != null) {
                         ledButton.setOnClickListener(new View.OnClickListener() {

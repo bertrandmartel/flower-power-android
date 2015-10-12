@@ -24,6 +24,7 @@
 package fr.bmartel.android.flowerpower;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -41,6 +42,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -70,23 +72,16 @@ import fr.bmartel.android.bluetooth.shared.StableArrayAdapter;
  *
  * @author Bertrand Martel
  */
-public class FlowerPowerActivity extends ActionBarActivity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+public class FlowerPowerActivity extends Activity {
 
     /**
      * debug tag
      */
     private String TAG = this.getClass().getName();
 
-    /**
-     * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
-     */
-    private NavigationDrawerFragment mNavigationDrawerFragment;
+    private boolean toSecondLevel= false;
 
-    /**
-     * Used to store the last screen title. For use in {@link #restoreActionBar()}.
-     */
-    private CharSequence mTitle;
+    private ProgressDialog dialog = null;
 
     /**
      * define if bluetooth is enabled on device
@@ -104,6 +99,11 @@ public class FlowerPowerActivity extends ActionBarActivity
     private ListView device_list_view = null;
 
     /**
+     * define if service is bounded or not
+     */
+    private boolean bound = false;
+
+    /**
      * current index of connecting device item in device list
      */
     private int list_item_position = 0;
@@ -112,8 +112,23 @@ public class FlowerPowerActivity extends ActionBarActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_flower_power);
+
+        // Use this check to determine whether BLE is supported on the device. Then
+        // you can selectively disable BLE-related features.
+        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
+            Toast.makeText(this, "Bluetooth Smart is not supported on your device", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        }
 
         final ProgressBar progress_bar = (ProgressBar) findViewById(R.id.scanningProgress);
 
@@ -129,22 +144,6 @@ public class FlowerPowerActivity extends ActionBarActivity
 
         if (scanText != null)
             scanText.setText("");
-
-        mNavigationDrawerFragment = (NavigationDrawerFragment)
-                getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mTitle = getTitle();
-
-        // Set up the drawer.
-        mNavigationDrawerFragment.setUp(
-                R.id.navigation_drawer,
-                (DrawerLayout) findViewById(R.id.drawer_layout));
-
-        // Use this check to determine whether BLE is supported on the device. Then
-        // you can selectively disable BLE-related features.
-        if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-            Toast.makeText(this, "Bluetooth Smart is not supported on your device", Toast.LENGTH_SHORT).show();
-            finish();
-        }
 
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
 
@@ -178,17 +177,43 @@ public class FlowerPowerActivity extends ActionBarActivity
             }
         });
 
-        Intent intent = new Intent(this, FlowerPowerBtService.class);
+        if (mBluetoothAdapter.isEnabled()) {
 
-        // bind the service to current activity and create it if it didnt exist before
-        startService(intent);
-        bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+            Intent intent = new Intent(this, FlowerPowerBtService.class);
+            // bind the service to current activity and create it if it didnt exist before
+            startService(intent);
+            bound = bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+        }
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if(requestCode == REQUEST_ENABLE_BT){
+
+            if(mBluetoothAdapter.isEnabled()) {
+
+                Intent intent = new Intent(this, FlowerPowerBtService.class);
+
+                // bind the service to current activity and create it if it didnt exist before
+                startService(intent);
+                bound = bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+
+            } else {
+
+                Toast.makeText(this, "Bluetooth disabled", Toast.LENGTH_SHORT).show();
+
+            }
+
+        }
     }
 
     /**
      * trigger a BLE scan
      */
     public void triggerNewScan() {
+
         Button button_stop_scanning = (Button) findViewById(R.id.stop_scanning_button);
         ProgressBar progress_bar = (ProgressBar) findViewById(R.id.scanningProgress);
         TextView scanText = (TextView) findViewById(R.id.scanText);
@@ -229,14 +254,48 @@ public class FlowerPowerActivity extends ActionBarActivity
     }
 
     @Override
+    public void onResume(){
+        super.onResume();
+        toSecondLevel=false;
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
         //unregister receiver on pause
         //unregisterReceiver(mGattUpdateReceiver);
 
+        if (!toSecondLevel) {
+
+            if (device_list_view!=null) {
+                device_list_view.setAdapter(null);
+            }
+
+            if (currentService!=null) {
+
+                currentService.disconnectall();
+                currentService.getListViewAdapter().clear();
+                currentService.getListViewAdapter().notifyDataSetChanged();
+                currentService.clearListAdapter();
+            }
+        }
+
+        if (dialog!=null){
+            dialog.cancel();
+            dialog=null;
+        }
+
+        if (currentService!=null) {
+            currentService.removeScanListeners();
+            if (currentService.isScanning())
+                currentService.stopScan();
+        }
+
         try {
-            // unregister receiver or you will have strong exception
-            unbindService(mServiceConnection);
+            if (bound) {
+                unbindService(mServiceConnection);
+                bound = false;
+            }
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
@@ -258,18 +317,30 @@ public class FlowerPowerActivity extends ActionBarActivity
 
 
             } else if (ActionFilterGatt.ACTION_GATT_DISCONNECTED.equals(action)) {
-                device_list_view.getChildAt(list_item_position).setBackgroundColor(Color.TRANSPARENT);
+
+                Log.i(TAG, "Device disconnected");
+
+                if (device_list_view!=null && device_list_view.getChildAt(list_item_position)!=null) {
+                    device_list_view.getChildAt(list_item_position).setBackgroundColor(Color.TRANSPARENT);
+                }
+
                 invalidateOptionsMenu();
+
+                if (dialog!=null){
+
+                    dialog.cancel();
+                    dialog=null;
+
+                }
 
             } else if (ActionFilterGatt.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
 
-                System.out.println("A device has been successfully initialized !!!");
+                Log.i(TAG, "Device connected && service discovered");
 
-                device_list_view.getChildAt(list_item_position).setBackgroundColor(Color.GREEN);
+                device_list_view.getChildAt(list_item_position).setBackgroundColor(Color.BLUE);
                 invalidateOptionsMenu();
 
                 //service has been discovered on device => you can address directly the device
-
 
                 ArrayList<String> actionsStr = intent.getStringArrayListExtra("");
                 if (actionsStr.size() > 0) {
@@ -277,21 +348,20 @@ public class FlowerPowerActivity extends ActionBarActivity
                         JSONObject mainObject = new JSONObject(actionsStr.get(0));
                         if (mainObject.has("address") && mainObject.has("flowerPowerName") && mainObject.has("deviceName")) {
 
-                            System.out.println("Setting for device = > " + mainObject.getString("address") + " - " + mainObject.getString("flowerPowerName") + " - " + mainObject.getString("deviceName"));
+                            Log.i(TAG, "Setting for device = > " + mainObject.getString("address") + " - " + mainObject.getString("flowerPowerName") + " - " + mainObject.getString("deviceName"));
+
+                            if (dialog!=null){
+
+                                dialog.cancel();
+                                dialog=null;
+                            }
 
                             Intent intentFlower = new Intent(FlowerPowerActivity.this, FlowerPowerDeviceActivity.class);
                             intentFlower.putExtra("deviceAddr", mainObject.getString("address"));
                             intentFlower.putExtra("flowerPowerName", mainObject.getString("flowerPowerName"));
                             intentFlower.putExtra("deviceName", mainObject.getString("deviceName"));
+                            toSecondLevel=true;
                             startActivity(intentFlower);
-
-                            /*
-                            if (btManager.getConnectionList().get(mainObject.getString("address")).getDevice() instanceof IFlowerPowerDevice) {
-                                IFlowerPowerDevice flowerPower = (IFlowerPowerDevice) btManager.getConnectionList().get(mainObject.getString("address")).getDevice();
-
-
-                            }
-                            */
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -316,7 +386,7 @@ public class FlowerPowerActivity extends ActionBarActivity
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
 
-            System.out.println("Connected to service");
+            Log.i(TAG,"Connected to service");
 
             currentService = ((FlowerPowerBtService.LocalBinder) service).getService();
 
@@ -424,6 +494,8 @@ public class FlowerPowerActivity extends ActionBarActivity
 
                     list_item_position = position;
 
+                    dialog = ProgressDialog.show(FlowerPowerActivity.this, "", "Connecting ...", true);
+
                     currentService.connect(deviceAddress, FlowerPowerActivity.this);
                 }
             });
@@ -436,100 +508,6 @@ public class FlowerPowerActivity extends ActionBarActivity
         }
 
     };
-
-    @Override
-    public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
-                .commit();
-    }
-
-    public void onSectionAttached(int number) {
-        switch (number) {
-            case 1:
-                mTitle = getString(R.string.title_section1);
-                break;
-        }
-    }
-
-    public void restoreActionBar() {
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-        actionBar.setDisplayShowTitleEnabled(true);
-        actionBar.setTitle(mTitle);
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        if (!mNavigationDrawerFragment.isDrawerOpen()) {
-            // Only show items in the action bar relevant to this screen
-            // if the drawer is not showing. Otherwise, let the drawer
-            // decide what to show in the action bar.
-            getMenuInflater().inflate(R.menu.flower_power, menu);
-            restoreActionBar();
-            return true;
-        }
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        public PlaceholderFragment() {
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_flower_power, container, false);
-            return rootView;
-        }
-
-        @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            ((FlowerPowerActivity) activity).onSectionAttached(
-                    getArguments().getInt(ARG_SECTION_NUMBER));
-        }
-    }
-
 
     /**
      * add filter to intent to receive notification from bluetooth service

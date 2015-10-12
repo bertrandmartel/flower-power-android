@@ -23,12 +23,17 @@
  */
 package fr.bmartel.android.bluetooth.parrot;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.util.Log;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import fr.bmartel.android.bluetooth.ICharacteristicListener;
 import fr.bmartel.android.bluetooth.IDeviceInitListener;
@@ -49,10 +54,15 @@ import fr.bmartel.android.utils.ByteUtils;
  */
 public class FlowerPowerDevice extends BluetoothDeviceAbstr implements IFlowerPowerDevice {
 
+    private String TAG = FlowerPowerDevice.class.getName();
+
     /**
      * live measurement period in seconds
      */
     private int LIVE_MEASURE_PERIOD_DEFAULT = 15;
+
+    private int entriesCount = 0;
+    private int lastEntry = 0;
 
     private HistoricStates historicState = HistoricStates.NONE;
     private ArrayList<IHistoricFrame> historicFrameList = new ArrayList<>();
@@ -109,9 +119,11 @@ public class FlowerPowerDevice extends BluetoothDeviceAbstr implements IFlowerPo
     /**
      * @param conn
      */
+    @SuppressLint("NewApi")
     public FlowerPowerDevice(IBluetoothDeviceConn conn) {
         super(conn);
         setCharacteristicListener(new ICharacteristicListener() {
+
             @Override
             public void onCharacteristicReadReceived(BluetoothGattCharacteristic charac) {
 
@@ -121,46 +133,45 @@ public class FlowerPowerDevice extends BluetoothDeviceAbstr implements IFlowerPo
                         flowerPowerListenerList.get(i).onSunLightChange(sunlight);
                     }
                     FlowerPowerDevice.this.sunlight = sunlight;
-                    System.out.println("sunlight : " + sunlight);
+                    Log.i(TAG, "sunlight : " + sunlight);
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.SOIL_EC)) {
                     double soilElec = ByteUtils.convertByteArrayToInt((ByteUtils.convertLeToBe(charac.getValue())));
                     for (int i = 0; i < flowerPowerListenerList.size(); i++) {
                         flowerPowerListenerList.get(i).onSoilEcChange(soilElec);
                     }
                     FlowerPowerDevice.this.soilEC = soilElec;
-                    System.out.println("soilEC : " + soilElec);
+                    Log.i(TAG,"soilEC : " + soilElec);
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.SOIL_TEMP)) {
                     double soilTemp = ByteUtils.convertByteArrayToInt(ByteUtils.convertLeToBe(charac.getValue()));
                     for (int i = 0; i < flowerPowerListenerList.size(); i++) {
                         flowerPowerListenerList.get(i).onSoilTempChange(soilTemp);
                     }
                     FlowerPowerDevice.this.soilTemp = soilTemp;
-                    System.out.println("soilTemp : " + soilTemp);
+                    Log.i(TAG,"soilTemp : " + soilTemp);
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.AIR_TEMP)) {
                     double airTemp = ByteUtils.convertByteArrayToInt((ByteUtils.convertLeToBe(charac.getValue())));
                     for (int i = 0; i < flowerPowerListenerList.size(); i++) {
                         flowerPowerListenerList.get(i).onAirTempChange(airTemp);
                     }
                     FlowerPowerDevice.this.airTemp = airTemp;
-                    System.out.println("airTemp : " + airTemp);
+                    Log.i(TAG,"airTemp : " + airTemp);
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.SOIL_WC)) {
                     double soilWC = ByteUtils.convertByteArrayToInt((ByteUtils.convertLeToBe(charac.getValue())));
                     for (int i = 0; i < flowerPowerListenerList.size(); i++) {
                         flowerPowerListenerList.get(i).onSoilWcChange(soilWC);
                     }
                     FlowerPowerDevice.this.soilWc = soilWC;
-                    System.out.println("soilWC : " + soilWC);
+                    Log.i(TAG,"soilWC : " + soilWC);
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.BATTERY_CHARAC)) {
-                    System.out.println("batter characteritistc has been read successfully");
                     batteryValue = charac.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
-                    System.out.println("batteryValue : " + batteryValue);
+                    Log.i(TAG,"batteryValue : " + batteryValue);
 
                     for (int i = 0; i < flowerPowerListenerList.size(); i++) {
                         flowerPowerListenerList.get(i).onBatteryValueReceived(batteryValue);
                     }
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.DATE_CHARAC)) {
                     flower_power_date = (new Date().getTime()) - charac.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT32, 0);
-                    System.out.println("flower_power_date : " + flower_power_date);
+                    Log.i(TAG,"flower_power_date : " + flower_power_date);
                     for (int i = 0; i < flowerPowerListenerList.size(); i++) {
                         flowerPowerListenerList.get(i).onFlowerPowerClockReceived(flower_power_date);
                     }
@@ -169,7 +180,7 @@ public class FlowerPowerDevice extends BluetoothDeviceAbstr implements IFlowerPo
                         led_state = false;
                     else
                         led_state = true;
-                    System.out.println("led_state : " + led_state);
+                    Log.i(TAG,"led_state : " + led_state);
 
                     for (int i = 0; i < flowerPowerListenerList.size(); i++) {
                         flowerPowerListenerList.get(i).onLedStateChange(led_state);
@@ -177,7 +188,7 @@ public class FlowerPowerDevice extends BluetoothDeviceAbstr implements IFlowerPo
 
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.LAST_MOVE_TIME_CHARAC)) {
                     last_move_date = charac.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT32, 0);
-                    System.out.println("last_move_date : " + last_move_date);
+                    Log.i(TAG,"last_move_date : " + last_move_date);
 
                     for (int i = 0; i < flowerPowerListenerList.size(); i++) {
                         flowerPowerListenerList.get(i).onLastMoveChange(last_move_date);
@@ -207,20 +218,37 @@ public class FlowerPowerDevice extends BluetoothDeviceAbstr implements IFlowerPo
                             color = FlowerPowerColor.GRAY_BLUE;
                             break;
                     }
-                    System.out.println("color : " + color);
+                    Log.i(TAG,"color : " + color);
 
                     for (int i = 0; i < flowerPowerListenerList.size(); i++) {
                         flowerPowerListenerList.get(i).onFlowerPowerColorChange(color);
                     }
 
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.HISTORY_SERVICE_ENTRIES_NUMBER)) {
-                    System.out.println(ByteUtils.byteArrayToStringMessage("HISTORY_SERVICE_ENTRIES_NUMBER ", charac.getValue(), '|'));
+
+                    entriesCount=ByteUtils.convertByteArrayToInt(ByteUtils.convertLeToBe(charac.getValue()));
+
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.HISTORY_SERVICE_LAST_ENTRY_INDEX)) {
-                    System.out.println(ByteUtils.byteArrayToStringMessage("HISTORY_SERVICE_LAST_ENTRY_INDEX ", charac.getValue(), '|'));
-                } else if (charac.getUuid().toString().equals(FlowerPowerConst.HISTORY_SERVICE_TRANSFER_START_INDEX)) {
-                    System.out.println(ByteUtils.byteArrayToStringMessage("HISTORY_SERVICE_TRANSFER_START_INDEX ", charac.getValue(), '|'));
+
+                    lastEntry = ByteUtils.convertByteArrayToInt(ByteUtils.convertLeToBe(charac.getValue()));
+
+                    if (lastEntry > 0 && entriesCount > 0) {
+                        int index = lastEntry - 1 + 1;
+                        getConn().writeCharacteristic(FlowerPowerConst.HISTORY_SERVICE, FlowerPowerConst.HISTORY_SERVICE_TRANSFER_START_INDEX, ByteUtils.convertLeToBe(ByteUtils.convertIntToByteArray(index)));
+                    } else {
+                        Log.e(TAG,"Error while setting transfer start index");
+                    }
+
+                }else if (charac.getUuid().toString().equals(FlowerPowerConst.UPLOAD_SERVICE_RX_STATUS)){
+
+                }
+                else if (charac.getUuid().toString().equals(FlowerPowerConst.UPLOAD_SERVICE_TX_STATUS)){
+
+                }
+                else if (charac.getUuid().toString().equals(FlowerPowerConst.HISTORY_SERVICE_TRANSFER_START_INDEX)) {
+
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.DEVICE_NAME)) {
-                    if (charac.getValue().length > 0) {
+                    if (charac.getValue()!=null && charac.getValue().length > 0) {
                         try {
                             name = new String(charac.getValue(), "UTF-8");
                         } catch (UnsupportedEncodingException e) {
@@ -243,53 +271,52 @@ public class FlowerPowerDevice extends BluetoothDeviceAbstr implements IFlowerPo
                         flowerPowerListenerList.get(i).onSunLightChange(sunlight);
                     }
                     FlowerPowerDevice.this.sunlight = sunlight;
-                    System.out.println("sunlight : " + sunlight);
+                    Log.i(TAG,"sunlight : " + sunlight);
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.SOIL_EC)) {
                     double soilElec = ByteUtils.convertByteArrayToInt((ByteUtils.convertLeToBe(charac.getValue())));
                     for (int i = 0; i < flowerPowerListenerList.size(); i++) {
                         flowerPowerListenerList.get(i).onSoilEcChange(soilElec);
                     }
                     FlowerPowerDevice.this.soilEC = soilElec;
-                    System.out.println("soilEC : " + soilElec);
+                    Log.i(TAG,"soilEC : " + soilElec);
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.SOIL_TEMP)) {
                     double soilTemp = ByteUtils.convertByteArrayToInt(ByteUtils.convertLeToBe(charac.getValue()));
                     for (int i = 0; i < flowerPowerListenerList.size(); i++) {
                         flowerPowerListenerList.get(i).onSoilTempChange(soilTemp);
                     }
                     FlowerPowerDevice.this.soilTemp = soilTemp;
-                    System.out.println("soilTemp : " + soilTemp);
+                    Log.i(TAG,"soilTemp : " + soilTemp);
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.AIR_TEMP)) {
                     double airTemp = ByteUtils.convertByteArrayToInt((ByteUtils.convertLeToBe(charac.getValue())));
                     for (int i = 0; i < flowerPowerListenerList.size(); i++) {
                         flowerPowerListenerList.get(i).onAirTempChange(airTemp);
                     }
                     FlowerPowerDevice.this.airTemp = airTemp;
-                    System.out.println("airTemp : " + airTemp);
+                    Log.i(TAG,"airTemp : " + airTemp);
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.SOIL_WC)) {
                     double soilWC = ByteUtils.convertByteArrayToInt((ByteUtils.convertLeToBe(charac.getValue())));
                     for (int i = 0; i < flowerPowerListenerList.size(); i++) {
                         flowerPowerListenerList.get(i).onSoilWcChange(soilWC);
                     }
                     FlowerPowerDevice.this.soilWc = soilWC;
-                    System.out.println("soilWC : " + soilWC);
+                    Log.i(TAG,"soilWC : " + soilWC);
                 } else if (charac.getUuid().equals(FlowerPowerConst.BATTERY_CHARAC)) {
                     batteryValue = charac.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0);
                     for (int i = 0; i < flowerPowerListenerList.size(); i++) {
                         flowerPowerListenerList.get(i).onBatteryValueReceived(batteryValue);
                     }
                     FlowerPowerDevice.this.batteryValue = batteryValue;
-                    System.out.println("batteryValue : " + batteryValue);
+                    Log.i(TAG,"batteryValue : " + batteryValue);
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.UPLOAD_SERVICE_TX_STATUS)) {
                     //set state to RECEIVING if TRANSFERRING is received
-                    System.out.println("RECEIVED UPLOAD_SERVICE_TX_STATUS NOTIFICATION");
+                    Log.i(TAG,"RECEIVED UPLOAD_SERVICE_TX_STATUS NOTIFICATION");
 
                     if (charac.getValue().length > 0 && charac.getValue()[0] == TxStatus.getTxValue(TxStatus.states.TRANSFERRING) && historicState == HistoricStates.STANDBY) {
                         historicState = HistoricStates.FIRST_TX_BUFFER_FRAME;
-                        System.out.println("RECEIVED TRANSFERRING");
+                        Log.i(TAG,"RECEIVED TRANSFERRING");
                     } else if (charac.getValue().length > 0 && charac.getValue()[0] == TxStatus.getTxValue(TxStatus.states.TRANSFERRING) && historicState == HistoricStates.RECEIVING) {
-                        System.out.println("RECEIVED TRANSFERRING during reception. Continue to stack...");
+                        Log.i(TAG,"RECEIVED TRANSFERRING during reception. Continue to stack...");
                     } else if (charac.getValue().length > 0) {
-                        System.out.println(TxStatus.getTxState(charac.getValue()[0]));
                         if (TxStatus.getTxState(charac.getValue()[0]) == TxStatus.states.WAITING_ACK) {
 
                             new Thread(new Runnable() {
@@ -304,17 +331,17 @@ public class FlowerPowerDevice extends BluetoothDeviceAbstr implements IFlowerPo
                 } else if (charac.getUuid().toString().equals(FlowerPowerConst.UPLOAD_SERVICE_TX_BUFFER)) {
 
                     //set state to RECEIVING if TRANSFERRING is received
-                    System.out.println("RECEIVED UPLOAD_SERVICE_TX_BUFFER NOTIFICATION");
+                    Log.i(TAG,"RECEIVED UPLOAD_SERVICE_TX_BUFFER NOTIFICATION");
 
                     if (charac.getValue().length > 0 && historicState == HistoricStates.FIRST_TX_BUFFER_FRAME) {
 
-                        System.out.println("RECEIVED FIRST_TX_BUFFER_FRAME");
+                        Log.i(TAG,"RECEIVED FIRST_TX_BUFFER_FRAME");
 
                         int fileLengthTemp = HistoricUtils.getFileLength(charac.getValue());
                         if (fileLengthTemp != -1) {
 
                             historicFileLength = fileLengthTemp;
-                            System.out.println("TOTAL LENGTH EXPECTED : " + historicFileLength + " => setting to RECEIVING state");
+                            Log.i(TAG,"TOTAL LENGTH EXPECTED : " + historicFileLength + " => setting to RECEIVING state");
                             historicState = HistoricStates.RECEIVING;
 
                             //clear historic list now that we already had first tx buffer frame
@@ -350,13 +377,13 @@ public class FlowerPowerDevice extends BluetoothDeviceAbstr implements IFlowerPo
 
                             for (int i = 0; i  < flowerPowerListenerList.size();i++)
                             {
-                                System.out.println("PROGRESS CHANGE : " + ((int)historicBytesCount*100/historicFileLength));
+                                Log.i(TAG,"PROGRESS CHANGE : " + ((int)historicBytesCount*100/historicFileLength));
 
                                 flowerPowerListenerList.get(i).onFullHistoryProgressChange(((int)historicBytesCount*100/historicFileLength));
                             }
                         }
 
-                        System.out.println("historicBytesCount => " + historicBytesCount + " et total : " + historicFileLength);
+                        Log.i(TAG,"historicBytesCount => " + historicBytesCount + " et total : " + historicFileLength);
 
                         if (historicBytesCount > historicFileLength) {
                             ArrayList<IHistoricFrame> historyList = HistoricUtils.rearrangeIndex(tempHistoricFrameList);
@@ -365,7 +392,8 @@ public class FlowerPowerDevice extends BluetoothDeviceAbstr implements IFlowerPo
                             }
                             tempHistoricFrameList.clear();
 
-                            System.out.println("COMPLETE HISTORIC DATA HAS BEEN RETRIEVED.WE HAVE NOW " + historicFrameList.size() + " frames stacked");
+                            Log.i(TAG,"COMPLETE HISTORIC DATA HAS BEEN RETRIEVED.WE HAVE NOW " + historicFrameList.size() + " frames stacked");
+
                             historyRetrieving = false;
                             for (int i = 0; i < flowerPowerListenerList.size(); i++) {
                                 flowerPowerListenerList.get(i).onFullHistoryDataReceived(historicFrameList);
@@ -419,7 +447,7 @@ public class FlowerPowerDevice extends BluetoothDeviceAbstr implements IFlowerPo
     @Override
     public void init() {
 
-        System.out.println("initializing Flower Power live measurement");
+        Log.i(TAG,"initializing Flower Power live measurement");
 
         readFlowerPowerName();
         readBatteryState();
@@ -456,11 +484,13 @@ public class FlowerPowerDevice extends BluetoothDeviceAbstr implements IFlowerPo
 
         getConn().writeCharacteristic(FlowerPowerConst.LIVE_SERVICE_UUID, FlowerPowerConst.LIVE_MEASUREMENT_PERIOD, ByteUtils.convertIntToByteArray(LIVE_MEASURE_PERIOD_DEFAULT));
 
-        /*
-        getConn().readCharacteristic(FlowerPowerConst.HISTORY_SERVICE, FlowerPowerConst.HISTORY_SERVICE_ENTRIES_NUMBER);
-        getConn().readCharacteristic(FlowerPowerConst.HISTORY_SERVICE, FlowerPowerConst.HISTORY_SERVICE_LAST_ENTRY_INDEX);
+
         getConn().readCharacteristic(FlowerPowerConst.HISTORY_SERVICE, FlowerPowerConst.HISTORY_SERVICE_TRANSFER_START_INDEX);
-        */
+
+        getConn().readCharacteristic(FlowerPowerConst.HISTORY_SERVICE, FlowerPowerConst.HISTORY_SERVICE_ENTRIES_NUMBER);
+
+        getConn().readCharacteristic(FlowerPowerConst.HISTORY_SERVICE,FlowerPowerConst.HISTORY_SERVICE_LAST_ENTRY_INDEX);
+
         //startHistoricDataRetrievalProcess();
     }
 
@@ -483,20 +513,23 @@ public class FlowerPowerDevice extends BluetoothDeviceAbstr implements IFlowerPo
      * start history retrieval process
      */
     public void startHistoricDataRetrievalProcess() {
-        historyRetrieving = true;
+
+        if (!historyRetrieving) {
+            historyRetrieving = true;
+        }
         //historic retrieval procedure
         //submit to notification for tx upload service
-        enableNotification(FlowerPowerConst.UPLOAD_SERVICE, FlowerPowerConst.UPLOAD_SERVICE_TX_BUFFER);
         enableNotification(FlowerPowerConst.UPLOAD_SERVICE, FlowerPowerConst.UPLOAD_SERVICE_TX_STATUS);
+        enableNotification(FlowerPowerConst.UPLOAD_SERVICE, FlowerPowerConst.UPLOAD_SERVICE_TX_BUFFER);
+
+        getConn().writeCharacteristic(FlowerPowerConst.UPLOAD_SERVICE, FlowerPowerConst.UPLOAD_SERVICE_RX_STATUS, new byte[]{RxStatus.getRxValue(RxStatus.states.RECEIVING)});
 
         historicState = HistoricStates.STANDBY;
         historicFileLength = 0;
         historicBytesCount = 0;
         historicFrameList.clear();
         tempHistoricFrameList.clear();
-
         //send RECEIVING as rx status
-        getConn().writeCharacteristic(FlowerPowerConst.UPLOAD_SERVICE, FlowerPowerConst.UPLOAD_SERVICE_RX_STATUS, new byte[]{RxStatus.getRxValue(RxStatus.states.RECEIVING)});
     }
 
     @Override

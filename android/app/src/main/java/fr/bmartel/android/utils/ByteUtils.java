@@ -62,6 +62,7 @@ public class ByteUtils {
         return temp;
     }
 
+
     /**
      * Build a byte array to string with a prefix message
      *

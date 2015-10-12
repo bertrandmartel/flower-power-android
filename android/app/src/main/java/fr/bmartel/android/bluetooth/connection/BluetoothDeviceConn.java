@@ -23,6 +23,7 @@
  */
 package fr.bmartel.android.bluetooth.connection;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -79,6 +80,7 @@ public class BluetoothDeviceConn implements IBluetoothDeviceConn {
      *
      * @param address
      */
+    @SuppressLint("NewApi")
     public BluetoothDeviceConn(String address, String deviceName,final IBluetoothCustomManager manager) {
         this.deviceAddr = address;
         this.deviceName=deviceName;
@@ -153,7 +155,7 @@ public class BluetoothDeviceConn implements IBluetoothDeviceConn {
 
             @Override
             public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-                System.out.println("characteristic write received ");
+                Log.i(TAG, "characteristic write received ");
                 manager.getEventManager().set();
                 if (device != null) {
                     device.notifyCharacteristicWriteReceived(characteristic);
@@ -173,7 +175,7 @@ public class BluetoothDeviceConn implements IBluetoothDeviceConn {
 
             @Override
             public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-                System.out.println("descriptor write received ");
+                Log.i(TAG, "descriptor write received ");
                 manager.getEventManager().set();
             }
 
@@ -181,7 +183,7 @@ public class BluetoothDeviceConn implements IBluetoothDeviceConn {
             // Characteristic notification
             public void onCharacteristicChanged(BluetoothGatt gatt,
                                                 BluetoothGattCharacteristic characteristic) {
-                System.out.println("descriptor change received ");
+                Log.i(TAG, "descriptor change received ");
 
                 if (device != null) {
                     device.notifyCharacteristicChangeReceived(characteristic);
@@ -209,29 +211,34 @@ public class BluetoothDeviceConn implements IBluetoothDeviceConn {
         return gatt;
     }
 
+    @SuppressLint("NewApi")
     @Override
     public void writeCharacteristic(String service, String charac, byte[] value) {
+
         manager.writeCharacteristic(gatt.getService(UUID.fromString(service)).getCharacteristic(UUID.fromString(charac)), value, gatt);
     }
 
+    @SuppressLint("NewApi")
     @Override
     public void readCharacteristic(String service, String charac) {
+
         manager.readCharacteristic(gatt.getService(UUID.fromString(service)).getCharacteristic(UUID.fromString(charac)), gatt);
     }
 
+    @SuppressLint("NewApi")
     @Override
     public void enableDisableNotification(UUID service, UUID charac, boolean enable) {
-        System.out.println("enableDisableNotification");
+
+        Log.i(TAG, "enableDisableNotification");
         if (gatt.getService(service) != null &&
-                gatt.getService(service).getCharacteristic(charac) != null) {
-
+                gatt.getService(service).getCharacteristic(charac) != null)
             gatt.setCharacteristicNotification(gatt.getService(service).getCharacteristic(charac), enable);
-
-        } else {
-            System.out.println("error inconsistent service or characteristic");
+        else {
+            Log.e(TAG, "error inconsistent service or characteristic");
         }
     }
 
+    @SuppressLint("NewApi")
     @Override
     public void enableGattNotifications(UUID service, UUID charac) {
 
@@ -244,7 +251,7 @@ public class BluetoothDeviceConn implements IBluetoothDeviceConn {
             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
             manager.writeDescriptor(descriptor, gatt);
         } else {
-            System.out.println("error inconsistent service or descriptor");
+            Log.e(TAG, "error inconsistent service or descriptor");
         }
 
     }
@@ -266,4 +273,13 @@ public class BluetoothDeviceConn implements IBluetoothDeviceConn {
     public IDevice getDevice() {
         return device;
     }
+
+    @SuppressLint("NewApi")
+    @Override
+    public void disconnect() {
+        if (gatt!=null){
+            gatt.disconnect();
+        }
+    }
+
 }

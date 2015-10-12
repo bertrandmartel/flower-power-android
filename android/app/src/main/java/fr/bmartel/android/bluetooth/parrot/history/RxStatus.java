@@ -21,8 +21,7 @@ public class RxStatus {
      * @param rxByte
      * @return
      */
-    public static states getRxState(byte rxByte)
-    {
+    public static states getRxState(byte rxByte) {
         switch (rxByte)
         {
             case 0:
