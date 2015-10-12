@@ -2,11 +2,11 @@
 
 <i>Last update on 12/10/2015</i>
 
-Android application to : 
-* test your Flower Power
-* show how to implement Gatt specifications API
+Flower power is a small bluetooth device made by Parrot used to monitor your plant with many sensors
 
-<hr/>
+<h3>Description</h3>
+
+Android application to manage your Dotti bluetooth device from BLE gatt interface
 
 Features implemented :
 * live measures of sunlight / soil T° / air T° / soil Ec / soil Wc
@@ -20,12 +20,16 @@ Features implemented :
 
 <hr/>
 
-Tested on :
-* Galaxy S4 (4.4)
-* Miami Box (4.2)
+<h3>Build</h3>
 
-Build with Android Studio
-Compatible from API lvl 17+
+* Build with Android Studio
+
+* Compatible from API lvl 17+
+
+``gradlew clean build``
+
+<hr/>
+
 Specifications : https://flowerpowerdev.parrot.com/attachments/download/32/FlowerPower-BLE.pdf
 
 <hr/>
