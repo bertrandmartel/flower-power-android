@@ -1,6 +1,6 @@
 # Flower Power Testing Android app #
 
-<i>Last update on 22/05/2015</i>
+<i>Last update on 12/10/2015</i>
 
 Android application to : 
 * test your Flower Power
@@ -31,8 +31,3 @@ Specifications : https://flowerpowerdev.parrot.com/attachments/download/32/Flowe
 <hr/>
 
 ![screenshot](https://raw.github.com/akinaru/flower-power-android-gatt/master/screenshot.png)
-
-* TODO : improve UI activities management
-* TODO : create other activity for historic data
-* TODO : monitor service discovery and connection for long waiting
-* TODO : define custom layout for Android TV / custom selector
