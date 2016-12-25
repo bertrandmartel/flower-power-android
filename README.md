@@ -34,7 +34,7 @@ Specifications : https://flowerpowerdev.parrot.com/attachments/download/32/Flowe
 
 <hr/>
 
-![screenshot](https://raw.github.com/akinaru/flower-power-android-gatt/master/screenshot.png)
+![screenshot](https://raw.github.com/bertrandmartel/flower-power-android-gatt/master/screenshot.png)
 
-![screenshot](https://raw.github.com/akinaru/flower-power-android-gatt/master/flower.jpg)
+![screenshot](https://raw.github.com/bertrandmartel/flower-power-android-gatt/master/flower.jpg)
 
